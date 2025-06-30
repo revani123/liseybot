@@ -126,8 +126,7 @@
 <header>Bizim Liseyin məhsulu olan çatbota xoş gəldiniz</header>
 
 <div id="sampleQuestions">
-  <button class="sample-question-btn">Lisey nədir?</button>
-  <button class="sample-question-btn">Liseyə qəbul necə aparılır?</button>
+  <!-- Suallar burada dinamik yüklənəcək -->
 </div>
 
 <div id="chat"></div>
@@ -147,6 +146,7 @@
   const chat = document.getElementById("chat");
   const input = document.getElementById("questionInput");
   const sendBtn = document.getElementById("sendBtn");
+  const sampleQuestionsContainer = document.getElementById("sampleQuestions");
 
   function addMessage(text, className) {
     const div = document.createElement("div");
@@ -184,20 +184,39 @@
     }
   }
 
+  // Sualları backenddən götür və düymə kimi əlavə et
+  async function loadSampleQuestions() {
+    try {
+      const res = await fetch("/api/faqs");
+      if (!res.ok) throw new Error("Suallar yüklənmədi");
+
+      const questions = await res.json();
+
+      // containerı təmizlə
+      sampleQuestionsContainer.innerHTML = "";
+
+      questions.forEach(q => {
+        const btn = document.createElement("button");
+        btn.className = "sample-question-btn";
+        btn.textContent = q;
+        btn.addEventListener("click", () => {
+          input.value = q;
+          sendQuestion();
+        });
+        sampleQuestionsContainer.appendChild(btn);
+      });
+    } catch (err) {
+      sampleQuestionsContainer.textContent = "Suallar yüklənmədi: " + err.message;
+    }
+  }
+
   sendBtn.addEventListener("click", sendQuestion);
   input.addEventListener("keydown", (e) => {
     if (e.key === "Enter") sendQuestion();
   });
 
-  document.querySelectorAll(".sample-question-btn").forEach(btn => {
-    btn.addEventListener("click", () => {
-      input.value = btn.textContent;
-      sendQuestion();
-    });
-  });
-
+  loadSampleQuestions();
   input.focus();
 </script>
 </body>
 </html>
-
